@@ -1,9 +1,6 @@
 package jobber
 
-import (
-	"errors"
-	"sync"
-)
+import "sync"
 
 type Jobber struct {
 	m          sync.RWMutex
@@ -14,8 +11,16 @@ type Jobber struct {
 	//	count      int
 }
 
+// Define the handle function.
+//
+// batch is the passed-in jobs
+// return true is the jobs are successfully handled.
 type HandleFunc func(batch []interface{}) bool
 
+// Create a New jobber
+//
+// f is the handle function
+// maxNum is the max number of jobs handled once.
 func New(f HandleFunc, maxNum int) *Jobber {
 	return &Jobber{
 		function: f,
@@ -23,9 +28,10 @@ func New(f HandleFunc, maxNum int) *Jobber {
 	}
 }
 
-func (j *Jobber) AddJob(v interface{}) error {
+// Add one job.
+func (j *Jobber) AddJob(v interface{}) {
 	if v == nil {
-		return errors.New("Value can't be nil.")
+		return
 	}
 	j.m.Lock()
 	defer j.m.Unlock()
@@ -35,9 +41,9 @@ func (j *Jobber) AddJob(v interface{}) error {
 		j.processing = true
 		go j.start()
 	}
-	return nil
 }
 
+// According the max number to get jobs.
 func (j *Jobber) getJobs() []interface{} {
 	j.m.RLock()
 	defer j.m.RUnlock()
@@ -49,6 +55,9 @@ func (j *Jobber) getJobs() []interface{} {
 	}
 }
 
+// Delete the jobs.
+//
+// The beginning l jobs will be deleted.
 func (j *Jobber) deleteJobs(l int) {
 	j.m.Lock()
 	defer j.m.Unlock()
@@ -57,10 +66,12 @@ func (j *Jobber) deleteJobs(l int) {
 	//	j.count += l
 }
 
+// Start the handle.
 func (j *Jobber) start() {
 	jobs := j.getJobs()
 	l := len(jobs)
 
+	// Check whether there are jobs. If none, quit the goroutine.
 	if l == 0 {
 		j.m.Lock()
 		j.processing = false
@@ -74,5 +85,6 @@ func (j *Jobber) start() {
 		j.deleteJobs(l)
 	}
 
+	// loop the handle method.
 	j.start()
 }

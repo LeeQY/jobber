@@ -10,10 +10,10 @@ If there are two jobs, the worker will take out two. If there are three, the wor
 
 ##The features
 * Simple usage. User will define a worker function, then just add jobs.
-* Fast return. Because user just need to add job.
-* Single worker in a seperate goroutine.
+* Fast return. Because user just need to add jobs and no need to wait jobs done.
+* Single worker and it will be in a seperate goroutine.
 * Thread-safe.
-* Cache jobs and retry the failed ones.
+* Cache jobs in memory and retry the failed ones.
 
 ##Install & Update
 ```
@@ -24,7 +24,7 @@ go get -u github.com/LeeQY/jobber
 
 ####Define the worker function:
 ```Go
-func delayFunc(values []interface{}) bool {
+func handleFunc(jobs []interface{}) bool {
 	...
 }
 ```
@@ -32,7 +32,7 @@ func delayFunc(values []interface{}) bool {
 ####Create a jobber
 ```Go
 // pass in the function and max number.
-jobber := New(delayFunc, 20)
+jobber := New(handleFunc, 20)
 ```
 
 ####Just add job
