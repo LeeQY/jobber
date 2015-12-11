@@ -43,6 +43,21 @@ func (j *Jobber) AddJob(v interface{}) {
 	}
 }
 
+// Add jobs.
+func (j *Jobber) AddJobs(v []interface{}) {
+	if v == nil {
+		return
+	}
+	j.m.Lock()
+	defer j.m.Unlock()
+
+	j.jobs = append(j.jobs, v...)
+	if !j.processing {
+		j.processing = true
+		go j.start()
+	}
+}
+
 // According the max number to get jobs.
 func (j *Jobber) getJobs() []interface{} {
 	j.m.RLock()
